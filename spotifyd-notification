@@ -106,14 +106,17 @@ dump_envvars() {
 }
 
 status() {
-        response=$(api_request "tracks/${TRACK_ID}" ".name, .artists[].name, .album.name, .album.id, .album.images[1].url")  #.album[0].images[0]
+        response=$(api_request "tracks/${TRACK_ID}" ".name, .artists[].name, .album.name, .album.id, .album.images[1].url")
         name="$(echo "$response" | sed -n '1p')"
         artist="$(echo "$response" | sed -n '2p')"
         album="$(echo "$response" | sed -n '3p')"
         album_id="$(echo "$response" | sed -n '4p')"
         cover_art_url="$(echo "$response" | sed -n '5p')"
-        curl -s "$cover_art_url" -o "$cover_dir/${album_id}.jpg"
-        notify "$name" "$artist | $album" "$cover_dir/${album_id}.jpg" $notification_timeout
+        album_cover_path="$cover_dir/${album_id}.jpg"
+        if [ ! -f "$album_cover_path" ]; then
+            curl -s "$cover_art_url" -o "$album_cover_path"
+        fi
+        notify "$name" "$artist | $album" "$album_cover_path" $notification_timeout
 }
 
 case "$1" in
